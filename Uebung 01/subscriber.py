@@ -38,7 +38,6 @@ def insert_into_database(message):
 
 def on_message(client, userdata, message):
     message = message.payload.decode()
-    #message = json.dumps(message)
     print(message)
     insert_into_database(message)
 
