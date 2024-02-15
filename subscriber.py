@@ -47,12 +47,4 @@ mqttc.on_message = on_message
 mqttc.connect("broker.hivemq.com", 1883, 60)
 mqttc.subscribe("DataMgmt", qos=1)
 
-mqttc.loop_start()
-
-try:
-    while True:
-        pass
-except KeyboardInterrupt:
-    print("Programm durch Benutzerunterbrechung beendet.")
-
-mqttc.loop_stop()
+mqttc.loop_forever()
