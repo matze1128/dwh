@@ -1,3 +1,10 @@
+-- Entfernen des Schemas, wenn es existiert
+DROP SCHEMA IF EXISTS star_schema CASCADE;
+
+-- Erstellen des Schemas, wenn es nicht existiert
+CREATE SCHEMA IF NOT EXISTS star_schema;
+
+-- Hub-Tabelle für Kunden, speichert eindeutige Kundenidentifikationen.
 CREATE TABLE data_vault.h_kunde (
     pk_kunde SERIAL PRIMARY KEY,
     kunde_account VARCHAR(50) NOT NULL,
@@ -5,12 +12,13 @@ CREATE TABLE data_vault.h_kunde (
     quelle VARCHAR(50) NOT NULL
 );
 
+-- Satellitentabelle für Kunden, speichert detaillierte Informationen zu Kunden.
 CREATE TABLE data_vault.s_kunde (
     pk_kunde INTEGER NOT NULL,
     vorname VARCHAR(200) NOT NULL,
     nachname VARCHAR(200) NOT NULL,
-    geschlecht VARCHAR(20) NOT NULL,
-    geburtsdatum DATE,
+    geschlecht VARCHAR(20) NOT NULL, 
+    geburtsdatum DATE, 
     ort VARCHAR(200) NOT NULL,
     land VARCHAR(200) NOT NULL,
     erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
@@ -19,13 +27,15 @@ CREATE TABLE data_vault.s_kunde (
     FOREIGN KEY (pk_kunde) REFERENCES data_vault.h_kunde(pk_kunde)
 );
 
+-- Hub-Tabelle für Fahrzeuge, speichert eindeutige Fahrzeugidentifikationen.
 CREATE TABLE data_vault.h_fahrzeug (
     pk_fahrzeug SERIAL PRIMARY KEY,
-    fin CHAR(17) NOT NULL,
+    fin CHAR(17) NOT NULL, 
     erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
     quelle VARCHAR(50) NOT NULL
 );
 
+-- Satellitentabelle für Fahrzeuge, speichert detaillierte Informationen zu Fahrzeugen.
 CREATE TABLE data_vault.s_fahrzeug (
     pk_fahrzeug INTEGER NOT NULL,
     modell VARCHAR(200) NOT NULL,
@@ -36,19 +46,32 @@ CREATE TABLE data_vault.s_fahrzeug (
     FOREIGN KEY (pk_fahrzeug) REFERENCES data_vault.h_fahrzeug(pk_fahrzeug)
 );
 
+-- Satellitentabelle für Herstellerinformationen zu Fahrzeugen.
+CREATE TABLE data_vault.s_hersteller (
+    pk_fahrzeug INTEGER NOT NULL,
+    hersteller_code CHAR(3) NOT NULL,
+    hersteller_name VARCHAR(200) NOT NULL,
+    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+    quelle VARCHAR(20) NOT NULL,
+    PRIMARY KEY (pk_fahrzeug, erstellt_am),
+    FOREIGN KEY (pk_fahrzeug) REFERENCES data_vault.h_fahrzeug(pk_fahrzeug)
+);
+
+-- Link-Tabelle für die Beziehung zwischen Kunden und Fahrzeugen.
 CREATE TABLE data_vault.l_kunde_fahrzeug (
     pk_fk SERIAL PRIMARY KEY,
     pk_kunde INTEGER NOT NULL,
     pk_fahrzeug INTEGER NOT NULL,
     erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
-    quelle VARCHAR(50) NOT NULL,
+    quelle VARCHAR(50) NOT NULL, -- Informationsquelle
     FOREIGN KEY (pk_kunde) REFERENCES data_vault.h_kunde(pk_kunde),
     FOREIGN KEY (pk_fahrzeug) REFERENCES data_vault.h_fahrzeug(pk_fahrzeug)
 );
 
+-- Satellitentabelle für detaillierte Informationen zur Beziehung zwischen Kunden und Fahrzeugen.
 CREATE TABLE data_vault.s_l_kunde_fahrzeug (
     pk_fk SERIAL NOT NULL,
-    kfz_kennzeichen VARCHAR(20) NOT NULL,
+    kfz_kennzeichen VARCHAR(20) NOT NULL, 
     kaufdatum DATE,
     lieferdatum DATE,
     kaufpreis INTEGER,
@@ -59,12 +82,15 @@ CREATE TABLE data_vault.s_l_kunde_fahrzeug (
     FOREIGN KEY (pk_fk) REFERENCES data_vault.l_kunde_fahrzeug(pk_fk)
 );
 
-CREATE TABLE data_vault.s_hersteller (
+-- Satellitentabelle für Fahrzeugmessungen, speichert Messdaten zu Fahrzeugen.
+CREATE TABLE data_vault.s_messung (
     pk_fahrzeug INTEGER NOT NULL,
-    hersteller_code CHAR(3) NOT NULL,
-    hersteller_name VARCHAR(200) NOT NULL,
-    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
-    quelle VARCHAR(20) NOT NULL,
-    PRIMARY KEY (pk_fahrzeug, erstellt_am),
-    FOREIGN KEY (pk_fahrzeug) REFERENCES data_vault.h_fahrzeug(pk_fahrzeug)
+    messung_id INTEGER NOT NULL,
+    messung_zeit TIMESTAMP, 
+    geschwindigkeit INTEGER,
+    empfangen TIMESTAMP,
+    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp, 
+    quelle VARCHAR(50) NOT NULL,
+    PRIMARY KEY (pk_fahrzeug, erstellt_am), 
+    FOREIGN KEY (pk_fahrzeug) REFERENCES data_vault.h_fahrzeug(pk_fahrzeug) 
 );
