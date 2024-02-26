@@ -1,71 +1,70 @@
-create table data_vault.h_kunde (
-	 pk_kunde Serial Primary Key,
-   kunde_account varchar(50) not null, 
-	 erstellt_am timestamp with time zone default current_timestamp, 
-	 quelle varchar(50) not null
+CREATE TABLE data_vault.h_kunde (
+    pk_kunde SERIAL PRIMARY KEY,
+    kunde_account VARCHAR(50) NOT NULL,
+    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+    quelle VARCHAR(50) NOT NULL
 );
 
-create table data_vault.s_kunde (
-   pk_kunde integer not null,
-   vorname varchar(200) not null,
-   nachname varchar(200) not null,
-   geschlecht varchar(20) not null,
-   geburtsdatum date,
-   ort varchar(200) not null,
-   land varchar(200) not null,
-   erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-   quelle varchar(50) not null,
-   PRIMARY KEY(pk_kunde, erstellt_am),
-   Foreign KEY(pk_kunde) References data_vault.h_kunde(pk_kunde)
+CREATE TABLE data_vault.s_kunde (
+    pk_kunde INTEGER NOT NULL,
+    vorname VARCHAR(200) NOT NULL,
+    nachname VARCHAR(200) NOT NULL,
+    geschlecht VARCHAR(20) NOT NULL,
+    geburtsdatum DATE,
+    ort VARCHAR(200) NOT NULL,
+    land VARCHAR(200) NOT NULL,
+    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+    quelle VARCHAR(50) NOT NULL,
+    PRIMARY KEY (pk_kunde, erstellt_am),
+    FOREIGN KEY (pk_kunde) REFERENCES data_vault.h_kunde(pk_kunde)
 );
 
-create table data_vault.h_fahrzeug (
-	 pk_fahrzeug Serial Primary Key,
-   fin char(17) not null,
-	 erstellt_am timestamp with time zone default current_timestamp, 
-	 quelle varchar(50) not null
+CREATE TABLE data_vault.h_fahrzeug (
+    pk_fahrzeug SERIAL PRIMARY KEY,
+    fin CHAR(17) NOT NULL,
+    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+    quelle VARCHAR(50) NOT NULL
 );
 
-create table data_vault.s_fahrzeug (
-   pk_fahrzeug integer not null,
-   modell varchar(200) not null,
-   produktionsdatum date,
-   erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-   quelle varchar(50) not null,
-   PRIMARY KEY(pk_fahrzeug, erstellt_am),
-   Foreign KEY(pk_fahrzeug) References data_vault.h_fahrzeug(pk_fahrzeug)
-
+CREATE TABLE data_vault.s_fahrzeug (
+    pk_fahrzeug INTEGER NOT NULL,
+    modell VARCHAR(200) NOT NULL,
+    produktionsdatum DATE,
+    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+    quelle VARCHAR(50) NOT NULL,
+    PRIMARY KEY (pk_fahrzeug, erstellt_am),
+    FOREIGN KEY (pk_fahrzeug) REFERENCES data_vault.h_fahrzeug(pk_fahrzeug)
 );
 
-create table data_vault.l_kunde_fahrzeug (
-	 pk_fk Serial Primary Key,
-   pk_kunde integer not null, 
-	 pk_fahrzeug integer not null,
-	 erstellt_am timestamp with time zone default current_timestamp, 
-	 quelle varchar(50) not null,
-	 Foreign KEY(pk_kunde) References data_vault.h_kunde(pk_kunde),
-	 Foreign KEY(pk_fahrzeug) References data_vault.h_fahrzeug(pk_fahrzeug)
+CREATE TABLE data_vault.l_kunde_fahrzeug (
+    pk_fk SERIAL PRIMARY KEY,
+    pk_kunde INTEGER NOT NULL,
+    pk_fahrzeug INTEGER NOT NULL,
+    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+    quelle VARCHAR(50) NOT NULL,
+    FOREIGN KEY (pk_kunde) REFERENCES data_vault.h_kunde(pk_kunde),
+    FOREIGN KEY (pk_fahrzeug) REFERENCES data_vault.h_fahrzeug(pk_fahrzeug)
 );
 
-create table data_vault.s_l_kunde_fahrzeug (
-	 pk_fk Serial not null,
-   kfz_kennzeichen varchar(20) not null,
-   kaufdatum date,
-   lieferdatum date,
-   kaufpreis integer,
-   rabatt_pct integer,
-	 erstellt_am timestamp with time zone default current_timestamp, 
-	 quelle varchar(50) not null,
-   Primary KEY(pk_fk, erstellt_am),
-	 Foreign KEY(pk_fk) References data_vault.l_kunde_fahrzeug(pk_fk)
+CREATE TABLE data_vault.s_l_kunde_fahrzeug (
+    pk_fk SERIAL NOT NULL,
+    kfz_kennzeichen VARCHAR(20) NOT NULL,
+    kaufdatum DATE,
+    lieferdatum DATE,
+    kaufpreis INTEGER,
+    rabatt_pct INTEGER,
+    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+    quelle VARCHAR(50) NOT NULL,
+    PRIMARY KEY (pk_fk, erstellt_am),
+    FOREIGN KEY (pk_fk) REFERENCES data_vault.l_kunde_fahrzeug(pk_fk)
 );
 
-create table data_vault.s_hersteller (
-   pk_fahrzeug integer not null,
-   hersteller_code char(3) not null,
-   hersteller_name varchar(200) not null,
-   erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-   quelle varchar(20) not null,
-   PRIMARY KEY(pk_fahrzeug, erstellt_am),
-   Foreign KEY(pk_fahrzeug) References data_vault.h_fahrzeug(pk_fahrzeug)
+CREATE TABLE data_vault.s_hersteller (
+    pk_fahrzeug INTEGER NOT NULL,
+    hersteller_code CHAR(3) NOT NULL,
+    hersteller_name VARCHAR(200) NOT NULL,
+    erstellt_am TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+    quelle VARCHAR(20) NOT NULL,
+    PRIMARY KEY (pk_fahrzeug, erstellt_am),
+    FOREIGN KEY (pk_fahrzeug) REFERENCES data_vault.h_fahrzeug(pk_fahrzeug)
 );
