@@ -1,3 +1,9 @@
+-- Entfernen des Schemas, wenn es existiert
+DROP SCHEMA IF EXISTS star_schema CASCADE;
+
+-- Erstellen des Schemas, wenn es nicht existiert
+CREATE SCHEMA IF NOT EXISTS star_schema;
+
 -- Kunden-Dimensionstabelle
 CREATE TABLE star_schema.dim_kunde (
     dim_kunde_id SERIAL PRIMARY KEY,
