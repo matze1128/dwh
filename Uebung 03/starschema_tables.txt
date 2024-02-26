@@ -1,0 +1,41 @@
+-- Kunden-Dimensionstabelle
+CREATE TABLE star_schema.dim_kunde (
+    dim_kunde_id SERIAL PRIMARY KEY,
+    kunde_account VARCHAR(50) NOT NULL,
+    vorname VARCHAR(200) NOT NULL,
+    nachname VARCHAR(200) NOT NULL,
+    geschlecht VARCHAR(20) NOT NULL,
+    geburtsdatum DATE,
+    ort VARCHAR(200) NOT NULL,
+    land VARCHAR(200) NOT NULL
+);
+
+-- Fahrzeug-Dimensionstabelle
+CREATE TABLE star_schema.dim_fahrzeug (
+    dim_fahrzeug_id SERIAL PRIMARY KEY,
+    fin CHAR(17) NOT NULL,
+    modell VARCHAR(200) NOT NULL,
+    produktionsdatum DATE,
+    hersteller_code CHAR(3) NOT NULL,
+    hersteller_name VARCHAR(200) NOT NULL
+);
+
+-- Kfz-Kennzeichen-Dimensionstabelle
+CREATE TABLE star_schema.dim_kfz_kennzeichen (
+    dim_kfz_kennzeichen_id SERIAL PRIMARY KEY,
+    kfz_kennzeichen VARCHAR(20) NOT NULL
+);
+
+-- Transaktions-Faktentabelle
+CREATE TABLE star_schema.fakt_transaktion (
+    dim_kunde_id INTEGER NOT NULL,
+    dim_fahrzeug_id INTEGER NOT NULL,
+    dim_kfz_kennzeichen_id INTEGER NOT NULL,
+    kaufdatum DATE,
+    lieferdatum DATE,
+    kaufpreis INTEGER,
+    rabatt_pct INTEGER,
+    FOREIGN KEY (dim_kunde_id) REFERENCES star_schema.dim_kunde(dim_kunde_id),
+    FOREIGN KEY (dim_fahrzeug_id) REFERENCES star_schema.dim_fahrzeug(dim_fahrzeug_id),
+    FOREIGN KEY (dim_kfz_kennzeichen_id) REFERENCES star_schema.dim_kfz_kennzeichen(dim_kfz_kennzeichen_id)
+);
