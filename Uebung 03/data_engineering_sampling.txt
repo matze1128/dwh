@@ -1,1 +1,67 @@
+-- Create Table fact_messung
+CREATE TABLE mart.fact_messung (
+    dim_fahrzeug_id INT NOT NULL,
+	gesendet TIMESTAMP WITH TIME ZONE NOT NULL,
+    empfangen TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    geschwindigkeit INT,
+    PRIMARY KEY (dim_fahrzeug_id, empfangen),
+    CONSTRAINT fk_dim_fahrzeug FOREIGN KEY (dim_fahrzeug_id)
+        REFERENCES mart.dim_fahrzeug (dim_fahrzeug_id)
+) PARTITION BY RANGE (empfangen);
 
+-- Create Partitions
+CREATE TABLE mart.fact_messung_2023 PARTITION OF mart.fact_messung
+    FOR VALUES FROM ('2023-01-01 00:00:00') TO ('2024-01-01 00:00:00');
+
+CREATE TABLE mart.fact_messung_2024 PARTITION OF mart.fact_messung
+    FOR VALUES FROM ('2024-01-01 00:00:00') TO ('2025-01-01 00:00:00');
+
+-- Insert Values from staging.messung
+INSERT INTO mart.fact_messung (dim_fahrzeug_id, gesendet, empfangen, geschwindigkeit)
+SELECT 
+    df.dim_fahrzeug_id,
+    to_timestamp((m.payload->>'zeit')::BIGINT) AT TIME ZONE 'UTC' as gesendet,
+    m.empfangen,
+    (m.payload->>'geschwindigkeit')::INT as geschwindigkeit
+FROM staging.messung m
+JOIN mart.dim_fahrzeug df ON df.fin = m.payload->>'fin';
+
+-- Create simple View
+CREATE OR REPLACE VIEW mart.agg_sampling_1min AS
+SELECT 
+    f.dim_fahrzeug_id,
+    date_trunc('minute', f.gesendet) AS minute_interval,
+    AVG(f.geschwindigkeit) AS durch_geschw,
+    COUNT(*) AS anzahl
+FROM 
+    mart.fact_messung f
+GROUP BY 
+    f.dim_fahrzeug_id, date_trunc('minute', f.gesendet);
+
+-- Create advanced View
+CREATE OR REPLACE VIEW mart.agg_sampling_1min_complete AS
+WITH time_intervals AS (
+    SELECT generate_series(
+        date_trunc('minute', MIN(f.gesendet)),
+        date_trunc('minute', MAX(f.gesendet)),
+        '1 minute'::interval
+    ) AS minute_interval
+    FROM mart.fact_messung f
+),
+aggregated_data AS (
+    SELECT 
+        f.dim_fahrzeug_id,
+        date_trunc('minute', f.gesendet) AS minute_interval,
+        AVG(f.geschwindigkeit) AS durch_geschw,
+        COUNT(f.geschwindigkeit) AS anzahl
+    FROM mart.fact_messung f
+    GROUP BY f.dim_fahrzeug_id, date_trunc('minute', f.gesendet)
+)
+SELECT 
+    ti.minute_interval,
+    ad.dim_fahrzeug_id,
+    ad.durch_geschw,
+    ad.anzahl
+FROM time_intervals ti
+LEFT JOIN aggregated_data ad ON ad.minute_interval = ti.minute_interval
+ORDER BY ti.minute_interval, ad.dim_fahrzeug_id;
