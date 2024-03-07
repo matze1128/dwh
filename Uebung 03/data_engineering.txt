@@ -1,0 +1,43 @@
+INSERT INTO mart.dim_kfz (kfz_kennzeichen)
+SELECT DISTINCT kfz_kennzeichen
+FROM staging.fzg_kauf
+ON CONFLICT (kfz_kennzeichen) DO NOTHING;
+
+INSERT INTO mart.dim_fahrzeug (fin, produktionsdatum, modell, hersteller_code, hersteller_name)
+SELECT
+    f.fin,
+    f.Produktionsdatum,
+    f.modell,
+    f.hersteller_code,
+    h.hersteller_name
+FROM staging.fahrzeug f
+JOIN staging.hersteller h ON f.hersteller_code = h.hersteller_code
+ON CONFLICT (fin) DO NOTHING;
+
+INSERT INTO mart.dim_kunde (kunde_account, vorname, nachname, geschlecht, geburtsdatum, wohnort, land)
+SELECT
+    knd.kunde_account,
+    knd.vorname,
+    knd.nachname,
+    knd.geschlecht,
+    knd.geburtsdatum,
+    o.ort,
+    l.land
+FROM staging.kunde knd
+JOIN staging.ort o ON knd.wohnort_id = o.ort_id
+JOIN staging.land l ON o.land_id = l.land_id
+ON CONFLICT (kunde_account) DO NOTHING;
+
+INSERT INTO mart.fact_kauf (dim_fahrzeug_id, dim_kunde_id, dim_kfz_id, kauf_kalender_datum, liefer_kalender_datum, kaufpreis, rabatt_pct)
+SELECT
+    f.dim_fahrzeug_id,
+    knd.dim_kunde_id,
+    z.dim_kfz_id,
+    s.kaufdatum,
+    s.lieferdatum,
+    s.Kaufpreis,
+    s.rabatt_pct
+FROM staging.fzg_kauf s
+JOIN mart.dim_fahrzeug f ON s.fin = f.fin
+JOIN mart.dim_kunde knd ON s.kunde_account = knd.kunde_account
+JOIN mart.dim_kfz z ON s.kfz_kennzeichen = z.kfz_kennzeichen;
